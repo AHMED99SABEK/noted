@@ -440,7 +440,8 @@ mermaid.initialize({
     z-index: 4;
   }
   .sidebar-overlay.open { display: block; }
-  .menu-btn { display: none; font-size: 16px; padding: 4px 10px; }
+  .menu-btn { display: none; font-size: 16px; padding: 6px 10px; position: relative; width: 34px; height: 30px; border: 1px solid var(--border); border-radius: 3px; background: transparent; cursor: pointer; }
+  .menu-btn-line { display: block; width: 16px; height: 2px; background: var(--text); margin: 3px auto; border-radius: 1px; }
 
   /* Tablet */
   @media (max-width: 1024px) {
@@ -527,7 +528,7 @@ mermaid.initialize({
 <body>
 
 <header>
-  <button class="menu-btn" onclick="toggleSidebar()" title="Show notes">â˜°</button>
+  <button class="menu-btn" onclick="toggleSidebar()" title="Show notes"><span class="menu-btn-line"></span><span class="menu-btn-line"></span><span class="menu-btn-line"></span></button>
   <div class="logo">NOTED<span>markdown + voice + diagrams</span></div>
   <div class="header-actions">
     <button class="accent" onclick="newNote()">+ new note</button>
@@ -1248,3 +1249,4 @@ if (currentId && notes.length) {
 </script>
 </body>
 </html>
+
