@@ -1159,18 +1159,81 @@ function stopTranscription(recId) {
   }
 }
 
-// Demo content removed
-/*
-const chapter6Note = {
-  id: genId(),
-  title: 'Chapter 6 - Creational Design Patterns',
-  content: `# Chapter 6: Creational Design Patterns in Detailed Design
+// --- SEEDED DEMO NOTE ---
+(function() {
+  const demoTitle = 'How DNS Resolves a Domain Name';
+  if (!notes.some(n => n.title === demoTitle)) {
+    const demoNote = {
+      id: genId(),
+      title: demoTitle,
+      content: `# How DNS Resolves a Domain Name
 
-## What Are Creational Design Patterns?
+**Ever wonder what happens when you type "google.com" and press Enter?**
 
-Imagine running a restaurant. You could cook every dish yourself, deciding each time which ingredients to grab. That works for one meal, but with a full menu, multiple chefs, and changing suppliers — you need **recipes**. Standardized ways of preparing dishes that any chef can follow.
+## The Real-World Analogy
 
-**Creational design patterns are those recipes — for creating objects in object-oriented systems.** They're proven templates that solve common object-creation problems so your code doesn't turn into a tangled mess of \`new\` statements scattered everywhere.
+You want to call your friend Alex, but you only know their name, not their phone number. You look up Alex in a phone book. The phone book gives you the number, and now you can dial it.
+
+**DNS (Domain Name System) is the internet's phone book.** Browsers speak in IP addresses (like \`142.250.190.78\`), but humans speak in domain names (like \`google.com\`). DNS translates between them.
+
+## The Lookup Flow
+
+\`\`\`mermaid
+sequenceDiagram
+    participant You as Your Browser
+    participant Cache as Local Cache
+    participant Resolver as DNS Resolver (ISP)
+    participant Root as Root Server
+    participant TLD as .com TLD Server
+    participant Auth as Google's Authoritative DNS
+    You->>Cache: Do I know google.com?
+    alt Cache HIT
+        Cache-->>You: Yes! IP is 142.250.190.78
+    else Cache MISS
+        Cache-->>You: Nope, go ask the resolver
+        You->>Resolver: What's the IP for google.com?
+        Resolver->>Root: Where's the .com nameserver?
+        Root-->>Resolver: Ask the .com TLD at a.gtld-servers.net
+        Resolver->>TLD: Where's google.com's nameserver?
+        TLD-->>Resolver: Ask ns1.google.com
+        Resolver->>Auth: What's the IP for google.com?
+        Auth-->>Resolver: It's 142.250.190.78
+        Resolver-->>You: Here's the IP!
+        You-->>Cache: Storing for next time
+    end
+\`\`\`
+
+## Step by Step
+
+1. **Browser cache check** — your browser first checks if it already knows the IP (from a recent lookup)
+2. **OS cache check** — if the browser doesn't know, it asks the operating system, which may have it cached
+3. **Recursive resolver** — the OS sends the query to your ISP's DNS resolver (or Cloudflare's \`1.1.1.1\` / Google's \`8.8.8.8\`)
+4. **Root server** — the resolver asks a root server "who manages .com?" The root doesn't know \`google.com\`, but it knows where the \`.com\` nameserver lives
+5. **TLD server** — the resolver asks the \`.com\` TLD server "who manages \`google.com\`?" It replies with Google's authoritative nameserver
+6. **Authoritative server** — the resolver asks \`ns1.google.com\` "what's the IP?" This server knows the exact answer
+7. **Response** — the IP flows back: auth → resolver → OS → browser, which then opens the connection
+
+## Why It Matters
+
+Every website visit triggers this chain. Without DNS, you'd have to memorize IP addresses for every site you visit. A failure at any step means the site won't load. This is why:
+- Cache expiry (\`TTL\`) balances freshness vs. speed
+- DNS attacks (cache poisoning, DDoS on root servers) can take down large parts of the internet
+- CDNs use DNS to route you to the nearest server (geo-based answers)
+
+## Common Misconception
+
+**"DNS just looks up IP addresses."** It also handles mail routing (MX records), security (DNSSEC), spam prevention (SPF/DKIM), and can redirect traffic (CNAME records). It's far more than just a phone book.
+
+## One-Line Summary
+
+DNS translates human-readable domain names into machine-routable IP addresses through a hierarchical chain of caches and authoritative servers.`,
+      updated: Date.now()
+    };
+    notes.unshift(demoNote);
+    currentId = demoNote.id;
+    saveAll();
+  }
+})();
 
 **Why it matters:** If you just \`new\` up objects wherever you need them, your code becomes rigid — changing one thing breaks everything, you can't swap implementations easily, and unit testing becomes a nightmare.
 
@@ -2371,7 +2434,6 @@ Construction design is the critical bridge between "what the system does" and "e
 5. Compute the cyclomatic complexity of a function with 4 if-statements and a switch with 6 cases (including default).`,
   updated: Date.now()
 };
-*/
 
 renderSidebar();
 setupDragDrop();
