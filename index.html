@@ -432,6 +432,66 @@ mermaid.initialize({
 
   .note-match { background: rgba(200, 169, 110, 0.25); padding: 0 1px; border-radius: 2px; }
 
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 4;
+  }
+  .sidebar-overlay.open { display: block; }
+  .menu-btn { display: none; font-size: 16px; padding: 4px 10px; }
+
+  /* Tablet */
+  @media (max-width: 1024px) {
+    header { padding: 10px 14px; }
+    .logo { font-size: 16px; }
+    .logo span { display: none; }
+    .header-actions { gap: 4px; }
+    .header-actions button { padding: 4px 8px; font-size: 11px; }
+    .sidebar { width: 200px; }
+    .editor-toolbar { padding: 6px 10px; gap: 4px; }
+    .tb-btn { padding: 3px 6px; font-size: 10px; }
+    .preview { padding: 16px; font-size: 14px; }
+    textarea { padding: 16px; font-size: 13px; }
+  }
+
+  /* Mobile */
+  @media (max-width: 700px) {
+    .menu-btn { display: block; }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -260px;
+      width: 240px;
+      height: 100vh;
+      z-index: 5;
+      transition: left 0.25s ease;
+      border-right: 1px solid var(--border);
+    }
+    .sidebar.open { left: 0; }
+    .main { position: relative; }
+    .note-del { opacity: 1; }
+
+    .editor-toolbar .toolbar-group:not(:first-child) { display: none; }
+    .view-toggle button { padding: 3px 6px; font-size: 10px; }
+    .header-actions button:not(.accent):not(#rec-btn):not(#vid-btn) { display: none; }
+    .header-actions .accent { padding: 4px 8px; font-size: 11px; }
+    #rec-btn, #vid-btn { font-size: 10px; padding: 4px 6px; }
+
+    .panels { flex-direction: column; }
+    .panels textarea { font-size: 13px; padding: 12px; min-height: 40%; }
+    .preview { font-size: 13px; padding: 12px; border-left: none; border-top: 1px solid var(--border); }
+
+    .import-zone { margin: 6px 10px; padding: 12px; font-size: 11px; }
+    #title-input { font-size: 13px; padding: 6px 12px; }
+
+    .recordings-panel { max-height: 120px; }
+    .recording-item { flex-wrap: wrap; gap: 4px; }
+    .recording-item audio { min-width: 120px; }
+    .recording-item video { height: 40px !important; }
+  }
+
   @media print {
     body { background: white; color: #000; }
     header, .sidebar, .editor-toolbar, .status-bar, .recordings-panel,
@@ -452,6 +512,7 @@ mermaid.initialize({
 <body>
 
 <header>
+  <button class="menu-btn" onclick="toggleSidebar()" title="Show notes">☰</button>
   <div class="logo">NOTED<span>markdown + voice + diagrams</span></div>
   <div class="header-actions">
     <button class="accent" onclick="newNote()">+ new note</button>
@@ -476,6 +537,7 @@ mermaid.initialize({
     <input id="file-input" type="file" accept=".md,.markdown,.txt" style="display:none" onchange="importFile(this)">
     <div class="notes-list" id="notes-list"></div>
   </div>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
   <div class="editor-area" id="editor-area">
     <div class="empty-state" id="empty-state">
@@ -548,7 +610,7 @@ function renderSidebar() {
   document.getElementById('note-count').textContent = notes.length;
   if (!notes.length) { list.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:12px;">no notes yet</div>'; return; }
   list.innerHTML = notes.map(n => `
-    <div class="note-item ${n.id === currentId ? 'active' : ''}" onclick="loadNote('${n.id}')">
+    <div class="note-item ${n.id === currentId ? 'active' : ''}" onclick="loadNote('${n.id}');if(window.innerWidth<=700)closeSidebar()">
       <button class="note-del" onclick="event.stopPropagation();deleteNote('${n.id}')" title="Delete note">x</button>
       <div class="note-title">${n.title || 'untitled'}</div>
       <div class="note-date">${new Date(n.updated).toLocaleDateString()}</div>
@@ -907,6 +969,15 @@ function setupSyncScroll() {
 }
 
 // Image paste: paste clipboard images as base64 markdown
+// Sidebar toggle for mobile
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
 function setupImagePaste() {
   const editor = document.getElementById('editor');
   if (!editor) return;
