@@ -462,34 +462,49 @@ mermaid.initialize({
     .sidebar {
       position: fixed;
       top: 0;
-      left: -260px;
-      width: 240px;
+      left: -280px;
+      width: 260px;
       height: 100vh;
       z-index: 5;
-      transition: left 0.25s ease;
+      transition: left 0.2s ease;
       border-right: 1px solid var(--border);
     }
     .sidebar.open { left: 0; }
     .main { position: relative; }
     .note-del { opacity: 1; }
 
-    .editor-toolbar .toolbar-group:not(:first-child) { display: none; }
-    .view-toggle button { padding: 3px 6px; font-size: 10px; }
-    .header-actions button:not(.accent):not(#rec-btn):not(#vid-btn) { display: none; }
-    .header-actions .accent { padding: 4px 8px; font-size: 11px; }
-    #rec-btn, #vid-btn { font-size: 10px; padding: 4px 6px; }
+    header { padding: 8px 10px; }
+    .logo { font-size: 15px; }
+    .header-actions { gap: 3px; }
+    .header-actions button { padding: 3px 7px; font-size: 10px; }
+    #rec-btn, #vid-btn { font-size: 9px; padding: 3px 5px; }
+
+    .editor-toolbar { padding: 4px 8px; gap: 3px; }
+    .tb-btn { padding: 5px 8px; font-size: 11px; }
+    .toolbar-sep { margin: 0 2px; }
+
+    .view-toggle { margin-left: auto; }
+    .view-toggle button { padding: 5px 10px; font-size: 11px; min-width: 44px; min-height: 36px; }
+    .view-toggle #btn-split { display: none; }
+
+    #title-input { font-size: 14px; padding: 8px 12px; }
 
     .panels { flex-direction: column; }
-    .panels textarea { font-size: 13px; padding: 12px; min-height: 40%; }
-    .preview { font-size: 13px; padding: 12px; border-left: none; border-top: 1px solid var(--border); }
+    .panels textarea { font-size: 15px; padding: 12px; line-height: 1.6; flex: 1; }
+    .preview { font-size: 14px; padding: 12px; line-height: 1.6; flex: 1; border-left: none; border-top: 1px solid var(--border); }
+    .panels textarea.hidden { flex: 0; }
+    .preview.hidden { flex: 0; }
 
-    .import-zone { margin: 6px 10px; padding: 12px; font-size: 11px; }
-    #title-input { font-size: 13px; padding: 6px 12px; }
+    #save-status { font-size: 9px; }
+    #word-count { font-size: 9px; }
 
-    .recordings-panel { max-height: 120px; }
-    .recording-item { flex-wrap: wrap; gap: 4px; }
-    .recording-item audio { min-width: 120px; }
-    .recording-item video { height: 40px !important; }
+    .import-zone { margin: 6px 10px; padding: 10px; font-size: 11px; }
+    .recordings-panel { max-height: 100px; }
+    .recording-item audio { min-width: 100px; height: 24px; }
+    .recording-item video { height: 36px !important; }
+    .rec-insert { font-size: 9px; padding: 3px 6px; }
+
+    .status-bar { padding: 3px 10px; }
   }
 
   @media print {
@@ -719,6 +734,7 @@ function saveNote() {
 function saveAll() { localStorage.setItem('noted_notes', JSON.stringify(notes)); }
 
 function setView(v) {
+  if (v === 'split' && window.innerWidth <= 700) v = 'edit';
   currentView = v;
   const editor = document.getElementById('editor');
   const preview = document.getElementById('preview');
