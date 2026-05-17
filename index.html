@@ -1154,6 +1154,8 @@ function stopTranscription(recId) {
   }
 }
 
+// Demo content removed
+/*
 const chapter6Note = {
   id: genId(),
   title: 'Chapter 6 - Creational Design Patterns',
@@ -2364,28 +2366,7 @@ Construction design is the critical bridge between "what the system does" and "e
 5. Compute the cyclomatic complexity of a function with 4 if-statements and a switch with 6 cases (including default).`,
   updated: Date.now()
 };
-
-// Seed default notes if not already present
-const hasCh6 = notes.some(n => n.title === 'Chapter 6 - Creational Design Patterns');
-if (!hasCh6) {
-  notes.unshift(chapter6Note);
-  currentId = chapter6Note.id;
-  saveAll();
-}
-
-const hasCh7 = notes.some(n => n.title === 'Chapter 7 - Structural and Behavioral Design Patterns');
-if (!hasCh7) {
-  notes.unshift(chapter7Note);
-  currentId = chapter7Note.id;
-  saveAll();
-}
-
-const hasCh8 = notes.some(n => n.title === 'Chapter 8 - Principles of Construction Design');
-if (!hasCh8) {
-  notes.unshift(chapter8Note);
-  currentId = chapter8Note.id;
-  saveAll();
-}
+*/
 
 renderSidebar();
 setupDragDrop();
