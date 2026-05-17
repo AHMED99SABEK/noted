@@ -608,6 +608,11 @@ mermaid.initialize({
 
 <script>
 let notes = JSON.parse(localStorage.getItem('noted_notes') || '[]');
+// Remove old demo notes that may linger in localStorage from a previous version
+const demoPrefixes = ['Chapter 6 - ', 'Chapter 7 - ', 'Chapter 8 - '];
+const oldLen = notes.length;
+notes = notes.filter(n => !demoPrefixes.some(p => (n.title || '').startsWith(p)));
+if (notes.length !== oldLen) localStorage.setItem('noted_notes', JSON.stringify(notes));
 let currentId = null;
 let mediaRecorder = null;
 let audioChunks = [];
@@ -2374,7 +2379,7 @@ setupShortcuts();
 setupSyncScroll();
 setupImagePaste();
 
-if (currentId) {
+if (currentId && notes.length) {
   const note = notes.find(n => n.id === currentId);
   if (note) openEditor(note);
 }
