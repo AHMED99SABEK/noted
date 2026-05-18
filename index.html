@@ -1277,6 +1277,8 @@ Concrete stores override \`createComputer()\` to return the correct product. The
 
 **Another benefit — parallel development:** Because the factory method decouples the creation logic from the business logic, different developers can work on product classes and client classes simultaneously. The team building computer stores doesn't need to wait for the team implementing StandardComputer.
 
+**Null Object handling:** When a factory method can't fulfill a request (e.g., the store doesn't carry that product type), return a **NullComputer** — a special object that implements the same interface with empty methods — instead of a null pointer. This keeps client code clean: no `if (ptr == nullptr)` guards everywhere. The client calls methods on the returned object normally, and the null object silently does nothing. The book applies this exact pattern in the StandardComputerStore's else-branch.
+
 ### Abstract Factory vs Factory Method
 
 | Aspect | Abstract Factory | Factory Method |
