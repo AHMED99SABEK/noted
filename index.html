@@ -458,6 +458,9 @@ mermaid.initialize({
     <button onclick="saveNote()">save</button>
     <button onclick="exportMd()">.md</button>
     <button onclick="exportPdf()">PDF</button>
+    <button onclick="exportJson()">export JSON</button>
+    <button onclick="document.getElementById('json-input').click()">import JSON</button>
+    <input id="json-input" type="file" accept=".json" style="display:none" onchange="importJson(this)">
     <button id="rec-btn" onclick="toggleRecording()">&#9679; record</button>
     <button id="vid-btn" onclick="toggleVideoRecording()">&#9646;&#9646; video</button>
   </div>
@@ -860,6 +863,52 @@ function exportMd() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// Export all notes as JSON (for transferring between local and web)
+function exportJson() {
+  const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'noted-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Import notes from JSON file (merges with existing, skips duplicates by title)
+function importJson(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) throw new Error('not an array');
+      let count = 0;
+      for (const n of imported) {
+        if (!n.title && !n.content) continue;
+        if (notes.some(x => x.title === n.title)) continue;
+        notes.push({ id: genId(), title: n.title || 'imported', content: n.content || '', updated: Date.now() });
+        count++;
+      }
+      if (count > 0) {
+        currentId = notes[0].id;
+        saveAll();
+        openEditor(notes[0]);
+        renderSidebar();
+        document.getElementById('save-status').textContent = 'imported ' + count + ' notes';
+      } else {
+        document.getElementById('save-status').textContent = 'no new notes to import';
+      }
+    } catch (err) {
+      alert('Failed to import JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
 }
 
 // Keyboard shortcuts
