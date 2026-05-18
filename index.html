@@ -432,6 +432,123 @@ mermaid.initialize({
 
   .note-match { background: rgba(200, 169, 110, 0.25); padding: 0 1px; border-radius: 2px; }
 
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 4;
+  }
+  .sidebar-overlay.open { display: block; }
+  .menu-btn { display: none; font-size: 16px; padding: 6px 10px; position: relative; width: 34px; height: 30px; border: 1px solid var(--border); border-radius: 3px; background: transparent; cursor: pointer; }
+  .menu-btn-line { display: block; width: 16px; height: 2px; background: var(--text); margin: 3px auto; border-radius: 1px; }
+
+  /* Tablet */
+  @media (max-width: 1024px) {
+    header { padding: 10px 14px; }
+    .logo { font-size: 16px; }
+    .logo span { display: none; }
+    .header-actions { gap: 4px; }
+    .header-actions button { padding: 4px 8px; font-size: 11px; }
+    .sidebar { width: 200px; }
+    .editor-toolbar { padding: 6px 10px; gap: 4px; }
+    .tb-btn { padding: 3px 6px; font-size: 10px; }
+    .preview { padding: 16px; font-size: 14px; }
+    textarea { padding: 16px; font-size: 13px; }
+  }
+
+  /* Mobile */
+  @media (max-width: 700px) {
+    .menu-btn { display: block; }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 260px;
+      height: 100vh;
+      z-index: 5;
+      transition: left 0.2s ease;
+      border-right: 1px solid var(--border);
+    }
+    .sidebar.open { left: 0; }
+    .main { position: relative; }
+    .note-del { opacity: 1; }
+
+    header { padding: 8px 10px; }
+    .logo { font-size: 15px; }
+    .header-actions { gap: 3px; }
+    .header-actions button { padding: 3px 7px; font-size: 10px; }
+    #rec-btn, #vid-btn { font-size: 9px; padding: 3px 5px; }
+
+    .editor-toolbar { padding: 4px 8px; gap: 3px; }
+    .tb-btn { padding: 5px 8px; font-size: 11px; }
+    .toolbar-sep { margin: 0 2px; }
+
+    .view-toggle { margin-left: auto; }
+    .view-toggle button { padding: 5px 10px; font-size: 11px; min-width: 44px; min-height: 36px; }
+    .view-toggle #btn-split { display: none; }
+
+    #title-input { font-size: 14px; padding: 8px 12px; }
+
+    .panels { flex-direction: column; }
+    .panels textarea { font-size: 15px; padding: 12px; line-height: 1.6; flex: 1; }
+    .preview { font-size: 14px; padding: 12px; line-height: 1.6; flex: 1; border-left: none; border-top: 1px solid var(--border); }
+    .panels textarea.hidden { flex: 0; }
+    .preview.hidden { flex: 0; }
+
+    #save-status { font-size: 9px; }
+    #word-count { font-size: 9px; }
+
+    .import-zone { margin: 6px 10px; padding: 10px; font-size: 11px; }
+    .recordings-panel { max-height: 100px; }
+    .recording-item audio { min-width: 100px; height: 24px; }
+    .recording-item video { height: 36px !important; }
+    .rec-insert { font-size: 9px; padding: 3px 6px; }
+
+    .status-bar { padding: 3px 10px; }
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    min-width: 360px;
+    max-width: 500px;
+    width: 90%;
+  }
+  .modal h2 { font-family: var(--font-mono); font-size: 14px; color: var(--accent); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .modal label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .modal input[type="text"], .modal input[type="password"] {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    border-radius: 3px;
+    outline: none;
+    margin-bottom: 12px;
+  }
+  .modal input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+  .modal-actions button { padding: 6px 14px; font-size: 12px; }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .status-dot.online { background: #7eb8a4; }
+  .status-dot.offline { background: #c46a5a; }
+  .server-status { font-size: 11px; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; }
+
   @media print {
     body { background: white; color: #000; }
     header, .sidebar, .editor-toolbar, .status-bar, .recordings-panel,
@@ -463,6 +580,7 @@ mermaid.initialize({
     <input id="json-input" type="file" accept=".json" style="display:none" onchange="importJson(this)">
     <button id="rec-btn" onclick="toggleRecording()">&#9679; record</button>
     <button id="vid-btn" onclick="toggleVideoRecording()">&#9646;&#9646; video</button>
+    <button onclick="openSettings()" style="opacity:0.5;font-size:14px;" title="Server settings">&#9881;</button>
   </div>
 </header>
 
@@ -532,6 +650,24 @@ mermaid.initialize({
   </div>
 </div>
 
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h2>Server sync</h2>
+    <div class="server-status" id="server-status"><span class="status-dot offline" id="status-dot"></span><span id="status-text">offline</span></div>
+    <label>Server URL</label>
+    <input type="text" id="setting-server-url" placeholder="https://your-worker.workers.dev">
+    <label>API Key</label>
+    <input type="password" id="setting-api-key" placeholder="your secret API key">
+    <div class="modal-actions">
+      <button onclick="testConnection()" style="border-color:var(--accent2);color:var(--accent2)">test</button>
+      <button onclick="syncAllToServer()" style="border-color:var(--accent);color:var(--accent)">push all</button>
+      <button onclick="pullFromServer()" style="border-color:var(--accent);color:var(--accent)">pull all</button>
+      <button class="accent" onclick="saveServerSettings()">save</button>
+      <button onclick="closeSettings()">close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let notes = JSON.parse(localStorage.getItem('noted_notes') || '[]');
 let currentId = null;
@@ -543,6 +679,129 @@ let isVideoRecording = false;
 let currentView = 'edit';
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+let serverUrl = localStorage.getItem('noted_server_url') || '';
+let apiKey = localStorage.getItem('noted_api_key') || '';
+
+function loadServerConfig() {
+  serverUrl = localStorage.getItem('noted_server_url') || '';
+  apiKey = localStorage.getItem('noted_api_key') || '';
+}
+function saveServerSettings() {
+  serverUrl = document.getElementById('setting-server-url').value.replace(/\/+$/, '');
+  apiKey = document.getElementById('setting-api-key').value;
+  localStorage.setItem('noted_server_url', serverUrl);
+  localStorage.setItem('noted_api_key', apiKey);
+  closeSettings();
+  if (serverUrl && apiKey) testConnection();
+}
+function openSettings() {
+  document.getElementById('setting-server-url').value = serverUrl;
+  document.getElementById('setting-api-key').value = apiKey;
+  document.getElementById('settings-modal').classList.add('open');
+  if (serverUrl && apiKey) testConnection();
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+
+async function serverFetch(path, options = {}) {
+  if (!serverUrl || !apiKey) return null;
+  const url = serverUrl + path;
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+        ...options.headers,
+      },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function testConnection() {
+  const url = document.getElementById('setting-server-url').value.replace(/\/+$/, '') || serverUrl;
+  const key = document.getElementById('setting-api-key').value || apiKey;
+  if (!url || !key) return;
+  const dot = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  try {
+    const res = await fetch(url + '/api/health', {
+      headers: { 'Authorization': 'Bearer ' + key },
+    });
+    if (res.ok) {
+      dot.className = 'status-dot online';
+      text.textContent = 'connected';
+    } else {
+      dot.className = 'status-dot offline';
+      text.textContent = 'auth failed';
+    }
+  } catch {
+    dot.className = 'status-dot offline';
+    text.textContent = 'cannot reach server';
+  }
+}
+
+async function syncNotesToServer() {
+  if (!serverUrl || !apiKey || !notes.length) return;
+  const payload = notes.map(n => ({ id: n.id, title: n.title, content: n.content, updated: n.updated }));
+  const result = await serverFetch('/api/notes', {
+    method: 'PUT',
+    body: JSON.stringify({ notes: payload }),
+  });
+  if (result) document.getElementById('save-status').textContent = 'synced to server';
+}
+
+async function deleteNoteFromServer(id) {
+  if (!serverUrl || !apiKey) return;
+  await serverFetch('/api/notes/' + id, { method: 'DELETE' });
+}
+
+async function pullFromServer() {
+  const data = await serverFetch('/api/notes');
+  if (!data || !Array.isArray(data)) {
+    document.getElementById('save-status').textContent = 'pull failed';
+    return;
+  }
+  const fullNotes = await Promise.all(data.map(async (n) => {
+    const full = await serverFetch('/api/notes/' + n.id);
+    return full || n;
+  }));
+  let count = 0;
+  for (const sn of fullNotes) {
+    const existing = notes.find(n => n.id === sn.id);
+    if (existing) {
+      if (sn.updated > existing.updated) {
+        existing.title = sn.title;
+        existing.content = sn.content;
+        existing.updated = sn.updated;
+        count++;
+      }
+    } else {
+      notes.push({ id: sn.id, title: sn.title || '', content: sn.content || '', updated: sn.updated || Date.now() });
+      count++;
+    }
+  }
+  if (count > 0) {
+    saveAll();
+    renderSidebar();
+    if (currentId) {
+      const note = notes.find(n => n.id === currentId);
+      if (note) openEditor(note);
+    }
+  }
+  document.getElementById('save-status').textContent = 'pulled ' + count + ' notes from server';
+}
+
+async function syncAllToServer() {
+  document.getElementById('save-status').textContent = 'syncing...';
+  await syncNotesToServer();
+}
 
 // post-process mermaid code blocks after marked renders — more reliable than custom renderer
 
@@ -657,7 +916,13 @@ function saveNote() {
   document.getElementById('save-status').textContent = 'saved ' + new Date().toLocaleTimeString();
 }
 
-function saveAll() { localStorage.setItem('noted_notes', JSON.stringify(notes)); }
+function saveAll() {
+  localStorage.setItem('noted_notes', JSON.stringify(notes));
+  if (serverUrl && apiKey) {
+    clearTimeout(window._syncTimer);
+    window._syncTimer = setTimeout(() => syncNotesToServer(), 2000);
+  }
+}
 
 function setView(v) {
   currentView = v;
@@ -996,6 +1261,7 @@ function deleteNote(id) {
   }
   saveAll();
   renderSidebar();
+  deleteNoteFromServer(id);
 }
 
 function closeEditor() {
@@ -2392,6 +2658,7 @@ function seedFromConstants() {
 }
 
 (async function init() {
+  loadServerConfig();
   const ok = await loadSeedNotes();
   if (!ok) seedFromConstants();
   renderSidebar();
@@ -2399,11 +2666,13 @@ function seedFromConstants() {
   setupShortcuts();
   setupSyncScroll();
   setupImagePaste();
+  if (serverUrl && apiKey) await pullFromServer();
   if (currentId) {
     const note = notes.find(n => n.id === currentId);
     if (note) openEditor(note);
   }
 })();
+
 </script>
 </body>
 </html>
