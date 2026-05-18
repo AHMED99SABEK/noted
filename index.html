@@ -2345,63 +2345,65 @@ Construction design is the critical bridge between "what the system does" and "e
   updated: Date.now()
 };
 
-// Seed or refresh notes from JS constants
-const SEED_NOTES = [chapter6Note, chapter7Note, chapter8Note];
-let seedChanged = false;
-for (const seedNote of SEED_NOTES) {
-  const seedHash = seedNote.content.length + '-' + seedNote.content.slice(0, 50);
-  const existing = notes.findIndex(n => n.title === seedNote.title);
-  if (existing === -1) {
-    notes.unshift({ ...seedNote, id: genId(), _seedHash: seedHash });
-    currentId = notes[0].id;
-    seedChanged = true;
-  } else {
-    const stored = notes[existing];
-    if (stored._seedHash !== seedHash) {
-      notes[existing] = { ...seedNote, id: stored.id, _seedHash: seedHash };
-      if (currentId === stored.id) currentId = notes[existing].id;
-      seedChanged = true;
-    }
-  }
-}
-// Seed or refresh notes from external JSON injector (used by academic-tutor skill)
-const seedInjector = document.getElementById('seed-inject');
-if (seedInjector) {
+// Seed notes from external notes.json (single source of truth for both local and web)
+async function loadSeedNotes() {
   try {
-    const injected = JSON.parse(seedInjector.textContent);
-    if (Array.isArray(injected)) {
-      for (const injNote of injected) {
-        const injHash = injNote.content.length + '-' + injNote.content.slice(0, 50);
-        const existing = notes.findIndex(n => n.title === injNote.title);
-        if (existing === -1) {
-          notes.unshift({ ...injNote, id: genId(), _seedHash: injHash });
-          if (!currentId) currentId = notes[0].id;
-          seedChanged = true;
-        } else {
-          const stored = notes[existing];
-          if (stored._seedHash !== injHash) {
-            notes[existing] = { ...injNote, id: stored.id, _seedHash: injHash };
-            if (currentId === stored.id) currentId = notes[existing].id;
-            seedChanged = true;
-          }
-        }
+    const res = await fetch('notes.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const seedNotes = await res.json();
+    if (!Array.isArray(seedNotes)) throw new Error('not array');
+    let changed = false;
+    for (const s of seedNotes) {
+      const hash = (s.content || '').length + '-' + (s.content || '').slice(0, 50);
+      const idx = notes.findIndex(n => n.title === s.title);
+      if (idx === -1) {
+        notes.unshift({ ...s, id: genId(), _seedHash: hash });
+        if (!currentId) currentId = notes[0].id;
+        changed = true;
+      } else if (notes[idx]._seedHash !== hash) {
+        notes[idx] = { ...s, id: notes[idx].id, _seedHash: hash };
+        changed = true;
       }
     }
-  } catch(e) { console.warn('seed-inject parse error:', e); }
+    if (changed) { saveAll(); renderSidebar(); }
+    return true;
+  } catch(e) {
+    console.warn('notes.json fetch failed, using built-in fallback:', e);
+    return false;
+  }
 }
-if (seedChanged) saveAll();
-
-renderSidebar();
-setupDragDrop();
-setupShortcuts();
-setupSyncScroll();
-setupImagePaste();
-
-if (currentId) {
-  const note = notes.find(n => n.id === currentId);
-  if (note) openEditor(note);
+// Fallback: seed from JS constants embedded in the page
+function seedFromConstants() {
+  const FALLBACK_NOTES = [chapter6Note, chapter7Note, chapter8Note];
+  let changed = false;
+  for (const s of FALLBACK_NOTES) {
+    const hash = s.content.length + '-' + s.content.slice(0, 50);
+    const idx = notes.findIndex(n => n.title === s.title);
+    if (idx === -1) {
+      notes.unshift({ ...s, id: genId(), _seedHash: hash });
+      if (!currentId) currentId = notes[0].id;
+      changed = true;
+    } else if (notes[idx]._seedHash !== hash) {
+      notes[idx] = { ...s, id: notes[idx].id, _seedHash: hash };
+      changed = true;
+    }
+  }
+  if (changed) saveAll();
 }
+
+(async function init() {
+  const ok = await loadSeedNotes();
+  if (!ok) seedFromConstants();
+  renderSidebar();
+  setupDragDrop();
+  setupShortcuts();
+  setupSyncScroll();
+  setupImagePaste();
+  if (currentId) {
+    const note = notes.find(n => n.id === currentId);
+    if (note) openEditor(note);
+  }
+})();
 </script>
-<script id="seed-inject" type="application/json">[]</script>
 </body>
 </html>
