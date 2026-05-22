@@ -6,6 +6,8 @@
 <title>Noted</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 <script>
 mermaid.initialize({
   startOnLoad: false,
@@ -669,7 +671,7 @@ mermaid.initialize({
 </div>
 
 <script>
-let notes = JSON.parse(localStorage.getItem('noted_notes') || '[]');
+let notes = [];
 let currentId = null;
 let mediaRecorder = null;
 let audioChunks = [];
@@ -749,7 +751,7 @@ async function testConnection() {
 
 async function syncNotesToServer() {
   if (!serverUrl || !apiKey || !notes.length) return;
-  const payload = notes.map(n => ({ id: n.id, title: n.title, content: n.content, updated: n.updated }));
+  const payload = notes.map(n => ({ id: n.id, title: n.title, content: n.content, updated: n.updated, deleted: n.deleted ? 1 : 0 }));
   const result = await serverFetch('/api/notes', {
     method: 'PUT',
     body: JSON.stringify({ notes: payload }),
@@ -777,14 +779,21 @@ async function pullFromServer() {
     const existing = notes.find(n => n.id === sn.id);
     if (existing) {
       if (sn.updated > existing.updated) {
-        existing.title = sn.title;
-        existing.content = sn.content;
-        existing.updated = sn.updated;
+        if (sn.deleted) {
+          notes = notes.filter(x => x.id !== existing.id);
+        } else {
+          existing.title = sn.title;
+          existing.content = sn.content;
+          existing.updated = sn.updated;
+          existing.deleted = 0;
+        }
         count++;
       }
     } else {
-      notes.push({ id: sn.id, title: sn.title || '', content: sn.content || '', updated: sn.updated || Date.now() });
-      count++;
+      if (!sn.deleted) {
+        notes.push({ id: sn.id, title: sn.title || '', content: sn.content || '', updated: sn.updated || Date.now(), deleted: 0 });
+        count++;
+      }
     }
   }
   if (count > 0) {
@@ -874,10 +883,18 @@ function onEditorChange() {
   updateWordCount();
 }
 
-async function updatePreview() {
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+const updatePreview = debounce(async function() {
   const content = document.getElementById('editor').value;
   const preview = document.getElementById('preview');
-  preview.innerHTML = marked.parse(content);
+  preview.innerHTML = DOMPurify.sanitize(marked.parse(content));
 
   // Convert marked \`\`\`mermaid code blocks into Mermaid elements
   const diagrams = [];
@@ -917,7 +934,7 @@ function saveNote() {
 }
 
 function saveAll() {
-  localStorage.setItem('noted_notes', JSON.stringify(notes));
+  localforage.setItem('noted_notes', notes);
   if (serverUrl && apiKey) {
     clearTimeout(window._syncTimer);
     window._syncTimer = setTimeout(() => syncNotesToServer(), 2000);
@@ -958,10 +975,13 @@ async function toggleRecording() {
       mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
       mediaRecorder.onstop = () => {
         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        stopTranscription(recId);
-        addRecording(url, 'audio', recId);
-        stream.getTracks().forEach(t => t.stop());
+        const reader = new FileReader();
+        reader.onload = () => {
+          stopTranscription(recId);
+          addRecording(reader.result, 'audio', recId);
+          stream.getTracks().forEach(t => t.stop());
+        };
+        reader.readAsDataURL(blob);
       };
       mediaRecorder.start();
       isRecording = true;
@@ -989,10 +1009,13 @@ async function toggleVideoRecording() {
       mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
       mediaRecorder.onstop = () => {
         const blob = new Blob(audioChunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        stopTranscription(recId);
-        addRecording(url, 'video', recId);
-        stream.getTracks().forEach(t => t.stop());
+        const reader = new FileReader();
+        reader.onload = () => {
+          stopTranscription(recId);
+          addRecording(reader.result, 'video', recId);
+          stream.getTracks().forEach(t => t.stop());
+        };
+        reader.readAsDataURL(blob);
       };
       mediaRecorder.start();
       isVideoRecording = true;
@@ -1155,8 +1178,8 @@ function importJson(input) {
       let count = 0;
       for (const n of imported) {
         if (!n.title && !n.content) continue;
-        if (notes.some(x => x.title === n.title)) continue;
-        notes.push({ id: genId(), title: n.title || 'imported', content: n.content || '', updated: Date.now() });
+        if (notes.some(x => (n.id && x.id === n.id))) continue;
+        notes.push({ id: n.id || genId(), title: n.title || 'imported', content: n.content || '', updated: n.updated || Date.now() });
         count++;
       }
       if (count > 0) {
@@ -1296,8 +1319,7 @@ async function exportPdf() {
     diagrams.push({ text: el.textContent, placeholder: el.parentElement });
   });
 
-  for (let i = 0; i < diagrams.length; i++) {
-    const d = diagrams[i];
+  const renderPromises = diagrams.map(async (d, i) => {
     const id = 'pdf-m-' + Date.now() + '-' + i;
     try {
       const { svg } = await mermaid.render(id, d.text);
@@ -1309,7 +1331,8 @@ async function exportPdf() {
       d.placeholder.innerHTML =
         '<div style="padding:12px;border:1px solid #999;border-radius:4px;color:#999;font-style:italic;">[Diagram error: ' + (err.message || 'render failed') + ']</div>';
     }
-  }
+  });
+  await Promise.all(renderPromises);
 
   const finalHtml = tmp.innerHTML;
 
@@ -2659,8 +2682,16 @@ function seedFromConstants() {
 
 (async function init() {
   loadServerConfig();
+  const savedNotes = await localforage.getItem('noted_notes');
+  if (savedNotes && Array.isArray(savedNotes) && savedNotes.length > 0) {
+    notes = savedNotes;
+  } else {
+    notes = JSON.parse(localStorage.getItem('noted_notes') || '[]');
+    if (notes.length > 0) localforage.setItem('noted_notes', notes);
+  }
+
   const ok = await loadSeedNotes();
-  if (!ok) seedFromConstants();
+  if (!ok && notes.length === 0) seedFromConstants();
   renderSidebar();
   setupDragDrop();
   setupShortcuts();

@@ -1,0 +1,15 @@
+{
+  "name": "noted-server",
+  "version": "1.0.0",
+  "description": "Noted private sync backend (Cloudflare Worker)",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create noted-db",
+    "db:execute": "wrangler d1 execute noted-db --remote --file=./schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

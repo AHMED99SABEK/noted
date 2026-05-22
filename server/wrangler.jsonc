@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "noted-server",
+  "main": "src/index.js",
+  "compatibility_date": "2026-05-01",
+  "account_id": "c1e6ef33471cd6d45a24e8077e8faf37",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "noted-db",
+      "database_id": "524441bf-263e-441d-8c9f-b95a20c26da9"
+    }
+  ]
+}
