@@ -920,7 +920,7 @@ const updatePreview = debounce(async function() {
       d.placeholder.innerHTML = '<pre style="color:#c46a5a;border:1px solid #c46a5a;padding:12px;border-radius:4px;">Diagram error: ' + (err?.message || err) + '</pre>';
     }
   }
-}
+}, 300);
 
 function updateWordCount() {
   const text = document.getElementById('editor').value;
