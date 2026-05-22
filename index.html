@@ -8,6 +8,8 @@
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
 mermaid.initialize({
   startOnLoad: false,
@@ -895,6 +897,13 @@ const updatePreview = debounce(async function() {
   const content = document.getElementById('editor').value;
   const preview = document.getElementById('preview');
   preview.innerHTML = DOMPurify.sanitize(marked.parse(content));
+
+  // Apply syntax highlighting
+  preview.querySelectorAll('pre code').forEach((block) => {
+    if (!block.classList.contains('language-mermaid')) {
+      hljs.highlightElement(block);
+    }
+  });
 
   // Convert marked \`\`\`mermaid code blocks into Mermaid elements
   const diagrams = [];
